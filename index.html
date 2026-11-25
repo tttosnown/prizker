@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#f4f1eb"><title>普利兹克建筑奖图鉴</title>
+<style>
+:root{--bg:#f4f1eb;--ink:#20211f;--muted:#77766f;--line:#d8d4ca;--accent:#a34b32}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Noto Sans SC",sans-serif}
+header{padding:28px 20px 22px;border-bottom:1px solid var(--line);max-width:1000px;margin:auto}
+.kicker{font-size:11px;letter-spacing:.18em;color:var(--accent);font-weight:700}h1{font-family:Georgia,"Noto Serif SC",serif;font-size:clamp(30px,7vw,54px);line-height:1.08;margin:12px 0 8px;font-weight:500}
+.sub{color:var(--muted);font-size:13px}.controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+input,select,button{font:inherit;border:1px solid var(--line);background:#fffdf8;padding:11px 13px;border-radius:3px;color:var(--ink)}input{flex:1;min-width:180px}
+main{max-width:1000px;margin:0 auto;padding:24px 20px 60px}.year{font:500 25px Georgia,serif;border-bottom:1px solid var(--line);padding:18px 0 10px;margin:12px 0 8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.card{background:#fffdf8;border:1px solid var(--line);padding:16px;cursor:pointer;transition:transform .15s,border-color .15s;min-height:130px}.card:hover{transform:translateY(-2px);border-color:var(--accent)}
+.year-tag{font:12px Georgia,serif;color:var(--accent)}.name{font-size:19px;font-weight:650;margin:12px 0 4px}.en{font-size:12px;color:var(--muted);line-height:1.4}
+#detail{display:none;background:#fffdf8;border:1px solid var(--line);padding:22px;margin-top:24px}.back{border:0;background:transparent;color:var(--accent);padding:0;margin-bottom:15px;cursor:pointer}
+.detail-title{font-size:30px;margin:4px 0}.detail-en{color:var(--muted)}.section{border-top:1px solid var(--line);margin-top:20px;padding-top:14px}.section h3{font-size:12px;letter-spacing:.12em;color:var(--accent);margin:0 0 8px}.note{font-size:14px;line-height:1.8;color:#55564f}
+.source{font-size:12px;color:var(--muted)}.source a{color:var(--accent)}
+footer{max-width:1000px;margin:auto;padding:0 20px 30px;color:var(--muted);font-size:11px}
+</style></head><body>
+<header><div class="kicker">ARCHITECTURE · PRIZE ARCHIVE</div><h1>普利兹克建筑奖<br>历届建筑师图鉴</h1><div class="sub">按获奖年份编排 · 1979—2026</div>
+<div class="controls"><input id="q" placeholder="搜索建筑师姓名 / 年份"><select id="order"><option value="desc">最新获奖在前</option><option value="asc">最早获奖在前</option></select></div></header>
+<main><div id="list"></div><section id="detail"><button class="back" id="back">← 返回名录</button><div class="year-tag" id="dy"></div><h2 class="detail-title" id="dn"></h2><div class="detail-en" id="de"></div>
+<div class="section"><h3>建筑师简介</h3><p class="note">此处将收录生平、教育经历与职业发展。当前版本先搭建资料结构，后续逐位补充并核对来源。</p></div>
+<div class="section"><h3>建筑理念</h3><p class="note">后续补充核心设计观念及其在具体作品中的体现。</p></div>
+<div class="section"><h3>代表作品与分析</h3><p class="note">后续补充作品图片、项目背景、空间组织、材料与构造分析，并标注图片来源。</p></div>
+<div class="section source">资料索引：<a href="https://www.pritzkerprize.com/laureates" target="_blank" rel="noopener">普利兹克建筑奖官方获奖者名录</a></div></section></main>
+<footer>原型版本：已建立年份名录与详情页结构。人物照片、作品图片和分析内容将在资料核验后逐步加入。</footer>
+<script>
+let all=[];const list=document.querySelector('#list'),detail=document.querySelector('#detail');
+function render(){const q=document.querySelector('#q').value.trim().toLowerCase(),order=document.querySelector('#order').value;
+let rows=all.filter(x=>String(x.year).includes(q)||x.name_zh.toLowerCase().includes(q)||x.name_en.toLowerCase().includes(q));
+rows.sort((a,b)=>order==='desc'?b.year-a.year:a.year-b.year);list.innerHTML='';
+let groups={};rows.forEach(x=>(groups[x.year]??=[]).push(x));
+Object.keys(groups).sort((a,b)=>order==='desc'?b-a:a-b).forEach(y=>{let h=document.createElement('h2');h.className='year';h.textContent=y;list.append(h);let g=document.createElement('div');g.className='grid';groups[y].forEach(x=>{let c=document.createElement('article');c.className='card';c.innerHTML=`<div class="year-tag">${x.year} LAUREATE</div><div class="name">${x.name_zh}</div><div class="en">${x.name_en}</div>`;c.onclick=()=>openDetail(x);g.append(c)});list.append(g)});}
+function openDetail(x){list.style.display='none';detail.style.display='block';document.querySelector('#dy').textContent=x.year+' LAUREATE';document.querySelector('#dn').textContent=x.name_zh;document.querySelector('#de').textContent=x.name_en;window.scrollTo(0,0)}
+document.querySelector('#back').onclick=()=>{detail.style.display='none';list.style.display='block'};document.querySelector('#q').oninput=render;document.querySelector('#order').onchange=render;
+fetch('laureates.json').then(r=>r.json()).then(d=>{all=d;render()}).catch(()=>{list.textContent='名录数据加载失败，请确认 laureates.json 与 index.html 位于同一目录。'});
+</script></body></html>
